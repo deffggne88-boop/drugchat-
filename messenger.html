@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мессенджер</title>
+<style>
+:root{
+  --bg:#ffffff; --side:#f7f7f8; --muted:#ececee; --raised:#e4e4e8;
+  --border:#dcdce0; --text:#1a1a1e; --secondary:#55555e;
+  --tertiary:#8a8a94; --quaternary:#b0b0ba;
+  --accent:#2f6fed; --positive:#1a9e54;
+  --c1:#2f6fed; --c2:#e05260; --c3:#2fa564; --c4:#8a5cf0; --c5:#6b6b76;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#17171a; --side:#1e1e22; --muted:#26262c; --raised:#33333a;
+    --border:#3a3a42; --text:#f2f2f4; --secondary:#b9b9c2;
+    --tertiary:#8f8f9a; --quaternary:#66666f;
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;justify-content:center;padding:24px}
+#app{width:100%;max-width:900px;display:flex;border:1px solid var(--border);border-radius:12px;overflow:hidden;height:min(560px,calc(100vh - 48px))}
+button,input{font:inherit}
+svg{display:block}
+.side{width:264px;border-right:1px solid var(--border);background:var(--side);display:flex;flex-direction:column;flex-shrink:0}
+.head{padding:12px 12px 8px;display:flex;align-items:center;gap:8px}
+.title{font-size:17px;font-weight:600;flex:1}
+.icbtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.icbtn:hover{color:var(--text);border-color:var(--text)}
+.icbtn svg{width:18px;height:18px}
+.search{margin:0 12px 8px;position:relative}
+.search svg{position:absolute;left:8px;top:8px;width:16px;height:16px;color:var(--tertiary)}
+.search input{width:100%;padding:7px 8px 7px 30px;border-radius:10px;border:1px solid var(--border);background:var(--muted);color:var(--text);font-size:14px;outline:none}
+.search input:focus{border-color:var(--text)}
+.list{flex:1;overflow-y:auto;padding:4px 8px}
+.chat{display:flex;gap:8px;padding:8px;border-radius:10px;cursor:pointer;align-items:center}
+.chat:hover{background:var(--muted)}
+.chat.on{background:var(--raised)}
+.av{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;border-radius:20px}
+.cbody{flex:1;min-width:0}
+.cname{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clast{font-size:12px;color:var(--tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.cmeta{text-align:right;flex-shrink:0}
+.ctime{font-size:11px;color:var(--quaternary)}
+.unread{margin-top:4px;min-width:18px;height:18px;border-radius:9px;background:var(--accent);color:#fff;font-size:11px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.new{padding:8px 12px 12px;display:none;gap:8px}
+.new.open{display:flex}
+.new input{flex:1;padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:var(--muted);color:var(--text);font-size:14px;outline:none;min-width:0}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.mhead{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.mname{font-size:15px;font-weight:600}
+.mstatus{font-size:12px;color:var(--positive)}
+.msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.empty{margin:auto;text-align:center;color:var(--tertiary);font-size:14px;line-height:22px}
+.row{display:flex}
+.row.me{justify-content:flex-end}
+.bubble{max-width:70%;padding:8px 12px;border-radius:12px;font-size:14px;line-height:20px;word-break:break-word}
+.row.them .bubble{background:var(--muted);border-top-left-radius:4px}
+.row.me .bubble{background:var(--accent);color:#fff;border-top-right-radius:4px}
+.sub{display:flex;gap:3px;align-items:center;justify-content:flex-end;margin-top:3px;font-size:11px;opacity:.75}
+.sub svg{width:13px;height:13px}
+.typing{display:inline-flex;gap:4px;padding:12px 14px;background:var(--muted);border-radius:12px;border-top-left-radius:4px}
+.typing i{width:6px;height:6px;border-radius:3px;background:var(--tertiary);animation:msb 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes msb{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-3px);opacity:1}}
+.input{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center}
+.input input{flex:1;padding:9px 12px;border-radius:10px;border:1px solid var(--border);background:var(--muted);color:var(--text);font-size:14px;outline:none;min-width:0}
+.input input:focus{border-color:var(--text)}
+.send{width:38px;height:38px;border-radius:10px;border:none;background:var(--text);color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .15s}
+.send:hover{opacity:.85}
+.send:disabled{opacity:.35;cursor:default}
+.send svg{width:18px;height:18px;transform:rotate(90deg)}
+@media(max-width:640px){
+  body{padding:0}
+  #app{height:100vh;max-width:none;border:none;border-radius:0}
+  .side{width:200px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="side">
+    <div class="head">
+      <span class="title">Чаты</span>
+      <button class="icbtn" id="newBtn" title="Новый чат"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6.09961C12.4971 6.09961 12.9004 6.50294 12.9004 7V11.0996H17C17.4971 11.0996 17.9004 11.5029 17.9004 12C17.9004 12.4971 17.4971 12.9004 17 12.9004H12.9004V17C12.9004 17.4971 12.4971 17.9004 12 17.9004C11.5029 17.9004 11.0996 17.4971 11.0996 17V12.9004H7C6.50294 12.9004 6.09961 12.4971 6.09961 12C6.09961 11.5029 6.50294 11.0996 7 11.0996H11.0996V7C11.0996 6.50294 11.5029 6.09961 12 6.09961Z" fill="currentColor"/></svg></button>
+    </div>
+    <div class="search"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.5 3C16.1944 3 20 6.80558 20 11.5C20 13.523 19.2933 15.381 18.1132 16.8404L21.1364 19.8636C21.4879 20.2151 21.4879 20.7849 21.1364 21.1364C20.7849 21.4879 20.2151 21.4879 19.8636 21.1364L16.8404 18.1132C15.381 19.2933 13.523 20 11.5 20C6.80558 20 3 16.1944 3 11.5C3 6.80558 6.80558 3 11.5 3ZM11.5 18.2C15.2003 18.2 18.2 15.2003 18.2 11.5C18.2 7.79969 15.2003 4.8 11.5 4.8C7.79969 4.8 4.8 7.79969 4.8 11.5C4.8 15.2003 7.79969 18.2 11.5 18.2Z" fill="currentColor"/></svg><input id="search" placeholder="Поиск"></div>
+    <div class="list" id="list"></div>
+    <div class="new" id="newRow"><input id="newName" placeholder="Имя собеседника"><button class="icbtn" id="newOk" title="Создать"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.3027 5.9053C19.6542 5.55397 20.2247 5.55388 20.5761 5.9053C20.9273 6.25675 20.9273 6.82734 20.5761 7.17874L9.65911 18.0948C9.30773 18.4461 8.73814 18.446 8.38665 18.0948L3.42376 13.1328C3.0726 12.7814 3.07263 12.2118 3.42376 11.8604C3.77524 11.509 4.34575 11.5089 4.6972 11.8604L9.02239 16.1856L19.3027 5.9053Z" fill="currentColor"/></svg></button></div>
+  </div>
+  <div class="main">
+    <div class="mhead" id="mhead" style="display:none">
+      <div class="av" id="mhAv" style="width:32px;height:32px;font-size:11px;border-radius:16px"></div>
+      <div><div class="mname" id="mhName"></div><div class="mstatus" id="mhStatus">в сети</div></div>
+      <div style="flex:1"></div>
+      <button class="icbtn" title="Видеозвонок"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 9.82422C10 9.03461 10.8724 8.55676 11.5381 8.98145L14.7344 11.0205C15.3361 11.4044 15.3536 12.2771 14.7676 12.6846L11.5713 14.9072C10.9083 15.3682 10.0002 14.8944 10 14.0869V9.82422Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M18 3.59961C20.1539 3.59961 21.9004 5.34609 21.9004 7.5V16.5C21.9004 18.6539 20.1539 20.4004 18 20.4004H6C3.84609 20.4004 2.09961 18.6539 2.09961 16.5V7.5C2.09961 5.34609 3.84609 3.59961 6 3.59961H18ZM6 5.40039C4.8402 5.40039 3.90039 6.3402 3.90039 7.5V16.5C3.90039 17.6598 4.8402 18.5996 6 18.5996H18C19.1598 18.5996 20.0996 17.6598 20.0996 16.5V7.5C20.0996 6.3402 19.1598 5.40039 18 5.40039H6Z" fill="currentColor"/></svg></button>
+      <button class="icbtn" title="Ещё"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 12C6 12.8283 5.32834 13.5 4.5 13.5C3.67166 13.5 3 12.8283 3 12C3 11.1717 3.67166 10.5 4.5 10.5C5.32834 10.5 6 11.1717 6 12Z" fill="currentColor"/><path d="M13.5 12C13.5 12.8283 12.8283 13.5 12 13.5C11.1717 13.5 10.5 12.8283 10.5 12C10.5 11.1717 11.1717 10.5 12 10.5C12.8283 10.5 13.5 11.1717 13.5 12Z" fill="currentColor"/><path d="M19.5002 13.5C20.3287 13.5 21 12.8287 21 12.0002C21 11.1718 20.3287 10.5 19.5002 10.5C18.6718 10.5 18 11.1718 18 12.0002C18 12.8287 18.6718 13.5 19.5002 13.5Z" fill="currentColor"/></svg></button>
+    </div>
+    <div class="msgs" id="msgs"><div class="empty">Выбери чат слева или создай новый,<br>чтобы начать переписку</div></div>
+    <div class="input" id="inRow" style="display:none">
+      <input id="msg" placeholder="Сообщение…" autocomplete="off">
+      <button class="send" id="sendBtn" title="Отправить"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.5364 10.1636C16.8879 10.5151 16.8879 11.0849 16.5364 11.4364C16.1849 11.7879 15.6151 11.7879 15.2636 11.4364L12.9 9.07281V17.1C12.9 17.597 12.4971 18 12 18C11.503 18 11.1 17.597 11.1 17.1V9.07281L8.73641 11.4364C8.38494 11.7879 7.81509 11.7879 7.46362 11.4364C7.11214 11.0849 7.11214 10.5151 7.46362 10.1636L11.3636 6.2636C11.7151 5.91211 12.2849 5.91211 12.6364 6.2636L16.5364 10.1636Z" fill="currentColor"/></svg></button>
+    </div>
+  </div>
+</div>
+<script>
+var COLORS=['--c1','--c2','--c3','--c4','--c5'];
+var REPLIES={
+  default:['Привет! Рад тебя видеть.','Как дела? Рассказывай!','Звучит интересно, продолжай.','Ха, классно 😄','Давай созвонимся позже?','Согласен на все сто!','Отличная идея, поддерживаю.','Хм, надо подумать над этим.'],
+  'Аня':['Привет! Я как раз про тебя думала 😊','Да, конечно! Во сколько?','Ура! Жду не дождусь.','Передавай всем привет!'],
+  'Максим':['Йо! Что как?','Работаю, но не бездельничаю 😎','Скинь ссылку, гляну вечером.','Договорились!'],
+  'Команда':['Всем привет! 👋','Встреча переносится на 15:00.','Документы обновил, проверьте.','Спасибо, все молодцы!']
+};
+function now(){var d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}
+var state={active:null,q:''};
+var chats=[
+ {name:'Аня',msgs:[{who:'them',text:'Привет! Ты уже посмотрел тот фильм?',t:'12:40',read:1},{who:'me',text:'Привет! Ещё нет, но обязательно на выходных',t:'12:41',read:1},{who:'them',text:'Супер, потом обсудим 🍿',t:'12:42',read:0}],unread:1},
+ {name:'Максим',msgs:[{who:'me',text:'Бро, как проект?',t:'Вчера',read:1},{who:'them',text:'Сдал вчера наконец-то!',t:'Вчера',read:1},{who:'me',text:'Поздравляю! 🎉',t:'Вчера',read:1}],unread:0},
+ {name:'Команда',msgs:[{who:'them',text:'Напоминаю про демо в пятницу',t:'Пн',read:1}],unread:2}
+];
+chats.forEach(function(c,i){c.id=i;c.color=COLORS[i%COLORS.length]});
+function $(id){return document.getElementById(id)}
+function esc(s){return s.replace(/[&<>"]/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]})}
+function avColor(c){return 'background:color-mix(in srgb, var('+c.color+') 18%, transparent);color:var('+c.color+')'}
+function av(c,size){return '<div class="av" style="width:'+size+'px;height:'+size+'px;font-size:'+Math.round(size*0.35)+'px;border-radius:'+(size/2)+'px;'+avColor(c)+'">'+esc(c.name[0].toUpperCase())+'</div>'}
+function renderList(){
+  var html='';
+  chats.filter(function(c){return !state.q||c.name.toLowerCase().includes(state.q)}).forEach(function(c){
+    var last=c.msgs[c.msgs.length-1];
+    html+='<div class="chat'+(state.active===c.id?' on':'')+'" data-id="'+c.id+'">'+av(c,40)+
+      '<div class="cbody"><div class="cname">'+esc(c.name)+'</div><div class="clast">'+esc(last.text)+'</div></div>'+
+      '<div class="cmeta"><div class="ctime">'+last.t+'</div>'+(c.unread?'<span class="unread">'+c.unread+'</span>':'')+'</div></div>';
+  });
+  $('list').innerHTML=html||'<div style="padding:16px;font-size:13px;color:var(--tertiary);text-align:center">Ничего не найдено</div>';
+  Array.prototype.forEach.call($('list').children,function(n){n.onclick=function(){openChat(+n.dataset.id)}});
+}
+var CHECK='<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.3027 5.9053C19.6542 5.55397 20.2247 5.55388 20.5761 5.9053C20.9273 6.25675 20.9273 6.82734 20.5761 7.17874L9.65911 18.0948C9.30773 18.4461 8.73814 18.446 8.38665 18.0948L3.42376 13.1328C3.0726 12.7814 3.07263 12.2118 3.42376 11.8604C3.77524 11.509 4.34575 11.5089 4.6972 11.8604L9.02239 16.1856L19.3027 5.9053Z" fill="currentColor"/></svg>';
+function bubble(m){
+  var sub=m.who==='me'?'<span class="sub">'+m.t+(m.read?' '+CHECK:'<span style="opacity:.6">✓</span>')+'</span>':'';
+  return '<div class="row '+m.who+'"><div class="bubble">'+esc(m.text)+sub+'</div></div>';
+}
+function renderMsgs(typing){
+  var c=chats[state.active];if(!c)return;
+  $('msgs').innerHTML=c.msgs.map(bubble).join('')+(typing?'<div class="row them"><div class="typing"><i></i><i></i><i></i></div></div>':'');
+  $('msgs').scrollTop=$('msgs').scrollHeight;
+}
+function openChat(id){
+  state.active=id;var c=chats[id];c.unread=0;
+  $('mhead').style.display='flex';
+  $('inRow').style.display='flex';
+  $('mhAv').outerHTML=av(c,32).replace('class="av"','class="av" id="mhAv"');
+  $('mhName').textContent=c.name;
+  renderMsgs(false);renderList();
+  setTimeout(function(){$('msg').focus()},50);
+}
+function reply(c){
+  renderMsgs(true);
+  setTimeout(function(){
+    var pool=REPLIES[c.name]||REPLIES.default;
+    var m={who:'them',text:pool[Math.floor(Math.random()*pool.length)],t:now(),read:1};
+    c.msgs.push(m);
+    if(state.active===c.id){renderMsgs(false);renderList()}
+    else{c.unread++;renderList()}
+  },1200+Math.random()*1400);
+}
+function send(){
+  var v=$('msg').value.trim();if(!v)return;
+  var c=chats[state.active];
+  c.msgs.push({who:'me',text:v,t:now(),read:1});
+  $('msg').value='';renderMsgs(false);renderList();reply(c);
+}
+$('sendBtn').onclick=send;
+$('msg').addEventListener('keydown',function(e){if(e.key==='Enter')send()});
+$('search').addEventListener('input',function(e){state.q=e.target.value.toLowerCase();renderList()});
+$('newBtn').onclick=function(){$('newRow').classList.toggle('open');$('newName').focus()};
+function createChat(){
+  var n=$('newName').value.trim();if(!n)return;
+  var c={id:chats.length,name:n,msgs:[{who:'them',text:'Привет! Ты создал новый чат со мной 👋',t:now(),read:1}],unread:0,color:COLORS[chats.length%COLORS.length]};
+  chats.push(c);$('newName').value='';$('newRow').classList.remove('open');
+  openChat(c.id);
+}
+$('newOk').onclick=createChat;
+$('newName').addEventListener('keydown',function(e){if(e.key==='Enter')createChat()});
+renderList();
+</script>
+</body>
+</html>
